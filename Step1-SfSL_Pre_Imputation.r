@@ -14,6 +14,7 @@
 
 library(tidyverse)
 library(readxl)
+library(psych)
 
 # Setting the working directory for the data
 #setwd("C:/Users/Tim/") # tablet
@@ -284,4 +285,42 @@ write_csv(SfSL_Impute_Base,"SfSL_Long_PreImpute.csv",na=".",col_names=T)
 
 # All objects created through this process were then saved for future reference in SfSLPreImpute.Rdata
 save.image("SfSLPreImpute.Rdata")
+
+
+###############################################################################
+# Finally, in order to determine the properties of the TAS in this study, 
+# Cronbach's alpha was calculated.
+
+# I begin a new sparse dataset with only participantID and timepoint
+tas_Sparse<-tasFull%>%select(ParticipantID,timepoint)
+
+# Now add columns for each variable that we want a summary for
+#  We want to calculate the Cronbach's alpha for each subscale
+#  and will will keep the raw data, hence we rerun the tas scoring portions
+
+TASIFList<-paste("tas",c(1,3,6,7,9,13,14),sep="")
+TASIFRev<-c()
+TASIF<-measureSumSpan(tasFull,TASIFList,TASIFRev,minVal=1,maxVal=5,varName="TASIF",keepRawData = TRUE)
+tas_Sparse<-tas_Sparse%>%bind_cols(TASIF)
+
+TASDFList<-paste("tas",c(2,4,11,12,17),sep="")
+TASDFRev<-c(2)
+TASDF<-measureSumSpan(tasFull,TASDFList,TASDFRev,minVal=1,maxVal=5,varName="TASDF",keepRawData = TRUE)
+tas_Sparse<-tas_Sparse%>%bind_cols(TASDF)
+
+TASEFList<-paste("tas",c(5,8,10,15,16,18,19,20),sep="")
+TASEFRev<-c(1,3,6,7)
+TASEF<-measureSumSpan(tasFull,TASEFList,TASEFRev,minVal=1,maxVal=5,varName="TASEF",keepRawData = TRUE)
+tas_Sparse<-tas_Sparse%>%bind_cols(TASEF)
+
+# Here we calculate the alpha for each subscale
+alpha(tas_Sparse[,TASIFList],cumulative=TRUE)
+alpha(tas_Sparse[,TASDFList],cumulative=TRUE)
+alpha(tas_Sparse[,TASEFList],cumulative=TRUE)
+
+# Now we calculate the OVERALL alpha
+TASALLList<-paste("tas",1:20,sep="")
+alpha(tas_Sparse[,TASALLList],cumulative=TRUE)
+
+
 
